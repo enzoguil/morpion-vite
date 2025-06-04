@@ -29,4 +29,18 @@ describe('Morpion - Unitaire', () => {
     game.play(0, 0);
     expect(game.play(0, 0)).toBe(false);
   });
+
+  it('doit détecter un match nul', () => {
+    const game = new Morpion(3);
+    game.play(0, 0); // X
+    game.play(0, 1); // O
+    game.play(1, 0); // X    X O
+    game.play(1, 1); // O    X O
+    game.play(2, 1); // X
+    game.play(2, 0); // O
+    game.play(0, 2); // X
+    game.play(1, 2); // O
+    game.play(2, 2); // X - Match nul
+    expect(game.isDraw).toBe(true);
+  });
 });
