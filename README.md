@@ -1,54 +1,62 @@
-# React + TypeScript + Vite
+# Morpion Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Un projet de morpion en React + TypeScript, avec une IA configurable (profondeur, taille de grille, alignement pour gagner) et plusieurs modes de jeu.
 
-Currently, two official plugins are available:
+## Fonctionnalités
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Grille paramétrable** : choisissez la taille (3x3, 5x5, etc.)
+- **Alignement configurable** : nombre de symboles à aligner pour gagner
+- **Profondeur IA** : nombre de coups anticipés par l’IA (1 à 10)
+- **Modes de jeu** :
+  - Joueur vs Joueur
+  - Joueur vs IA (l’IA joue toujours 'O')
+  - IA vs IA (simulation automatique)
+- **Détection de victoire, match nul, et blocage des coups invalides**
+- **Interface responsive et centrée**
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Lancer le projet
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm run dev
 ```
+
+Ouvrez [http://localhost:5173](http://localhost:5173) dans votre navigateur.
+
+## Lancer les tests
+
+```bash
+npm test
+```
+
+- **Tests unitaires** : `tests/morpion.unit.test.ts`
+- **Tests fonctionnels** : `tests/morpion.functional.test.tsx`
+
+```bash
+npm test:e2e
+```
+
+- **Tests end to end** : `e2e/morpion.e2e.spec.ts`
+
+## Structure du projet
+
+- `src/App.tsx` : composant principal React, interface et logique de jeu
+- `src/morpion.ts` : logique du jeu et de l’IA (minimax, heuristique, etc.)
+- `tests/` : tests unitaires et fonctionnels
+- `e2e/` : tests end to end
+
+## Personnalisation
+
+- **Taille de la grille** : modifiez le champ "Taille de la grille"
+- **Alignement pour gagner** : modifiez le champ "Alignement pour gagner"
+- **Profondeur IA** : modifiez le champ "Profondeur IA" (plus la valeur est grande, plus l’IA est forte mais lente)
+- **Mode de jeu** : cochez "Jouer contre l'IA" ou "IA vs IA"
+
+---
+
+**Bon jeu !**
