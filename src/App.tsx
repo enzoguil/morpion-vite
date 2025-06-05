@@ -17,7 +17,8 @@ const App = () => {
   const [firstPlayer, setFirstPlayer] = useState<'X' | 'O'>('X');
 
   // Fonction utilitaire pour choisir aléatoirement le premier joueur
-  const getRandomFirstPlayer = () => (Math.random() < 0.5 ? 'X' : 'O');
+  //const getRandomFirstPlayer = () => (Math.random() < 0.5 ? 'X' : 'O');
+  const getRandomFirstPlayer = (): 'X' | 'O' => 'X';
 
   const createGame = (size: number, align: number, profondeur: number, first: 'X' | 'O') => {
     const game = new Morpion(size, align, profondeur);
@@ -206,7 +207,7 @@ const App = () => {
               <button
                 key={j}
                 onClick={() => handleCellClick(i, j)}
-                className={cell === 'X' ? 'x' : cell === 'O' ? 'o' : 'o'}
+                className={`cell ${cell === 'X' ? 'x' : cell === 'O' ? 'o' : 'o'}`}
                 style={{
                   width: 50,
                   height: 50,
