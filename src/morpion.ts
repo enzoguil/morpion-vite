@@ -68,6 +68,7 @@ export class Morpion {
     playAI(): boolean {
         if (this.winner || this.isDraw) return false;
 
+        // Coup aléatoire si grille vide
         if (this.grid.flat().every(cell => cell === null)) {
             const empty: [number, number][] = [];
             for (let i = 0; i < this.size; i++) {
@@ -79,28 +80,15 @@ export class Morpion {
             return this.play(row, col);
         }
 
-        // 1. Blocage prioritaire
-        let blockMove = this.findWinningMove('X');
-        if (blockMove) return this.play(blockMove[0], blockMove[1]);
-
-        let blockThreatMove = this.findThreatMove('X', this.profondeur);
-        if (blockThreatMove) return this.play(blockThreatMove[0], blockThreatMove[1]);
-
-        // 2. Si l'IA peut gagner immédiatement
-        let winMove = this.findWinningMove('O');
-        if (winMove) return this.play(winMove[0], winMove[1]);
-
-        let prepareWinMove = this.findThreatMove('O', this.profondeur);
-        if (prepareWinMove) return this.play(prepareWinMove[0], prepareWinMove[1]);
-
-        // 3. Sinon, joue le coup qui maximise ses chances (évaluation simple)
         let bestScore = -Infinity;
         let bestMove: [number, number] | null = null;
+        const maxDepth = this.profondeur;
+
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
                 if (!this.grid[i][j]) {
                     this.grid[i][j] = 'O';
-                    const score = this.evaluatePotential('O', i, j);
+                    const score = this.minimax(1, false, maxDepth, -Infinity, Infinity);
                     this.grid[i][j] = null;
                     if (score > bestScore) {
                         bestScore = score;
@@ -113,7 +101,7 @@ export class Morpion {
             return this.play(bestMove[0], bestMove[1]);
         }
 
-        // 4. Sinon, joue le premier coup libre
+        // Fallback
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
                 if (!this.grid[i][j]) {
@@ -124,32 +112,104 @@ export class Morpion {
         return false;
     }
 
+    private minimax(depth: number, isMaximizing: boolean, maxDepth: number, alpha: number, beta: number): number {
+        if (this.checkAnyWin('O')) return 100 - depth;
+        if (this.checkAnyWin('X')) return depth - 100;
+        if (this.grid.flat().every(cell => cell !== null)) return 0;
+        if (depth >= maxDepth) return this.heuristicScore();
+
+        if (isMaximizing) {
+            let maxEval = -Infinity;
+            for (let i = 0; i < this.size; i++) {
+                for (let j = 0; j < this.size; j++) {
+                    if (!this.grid[i][j]) {
+                        this.grid[i][j] = 'O';
+                        const evalScore = this.minimax(depth + 1, false, maxDepth, alpha, beta);
+                        this.grid[i][j] = null;
+                        maxEval = Math.max(maxEval, evalScore);
+                        alpha = Math.max(alpha, evalScore);
+                        if (beta <= alpha) break;
+                    }
+                }
+            }
+            return maxEval;
+        } else {
+            let minEval = Infinity;
+            for (let i = 0; i < this.size; i++) {
+                for (let j = 0; j < this.size; j++) {
+                    if (!this.grid[i][j]) {
+                        this.grid[i][j] = 'X';
+                        const evalScore = this.minimax(depth + 1, true, maxDepth, alpha, beta);
+                        this.grid[i][j] = null;
+                        minEval = Math.min(minEval, evalScore);
+                        beta = Math.min(beta, evalScore);
+                        if (beta <= alpha) break;
+                    }
+                }
+            }
+            return minEval;
+        }
+    }
+
+    private checkAnyWin(player: Player): boolean {
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                if (this.grid[i][j] === player && this.checkWinCustom(i, j, player)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private heuristicScore(): number {
+        // Score pour O (IA) et X (joueur)
+        const scoreAlign = (player: Player) => {
+            let score = 0;
+            for (let i = 0; i < this.size; i++) {
+                for (let j = 0; j < this.size; j++) {
+                    if (this.grid[i][j] === null) {
+                        // Simule le coup
+                        this.grid[i][j] = player;
+                        if (this.checkWinCustom(i, j, player)) {
+                            score += 100;
+                        } else {
+                            // Bonus pour 2 alignés ouverts
+                            score += this.countOpenTwo(player, i, j) * 10;
+                        }
+                        this.grid[i][j] = null;
+                    }
+                }
+            }
+            return score;
+        };
+        return scoreAlign('O') - scoreAlign('X');
+    }
+
     // Ajoute cette méthode à ta classe Morpion
-    private evaluatePotential(player: Player, row: number, col: number): number {
-        // Évalue le nombre de cases alignées autour de (row, col) pour le joueur
+    private countOpenTwo(player: Player, row: number, col: number): number {
+        // Compte les alignements de 2 ouverts (pour anticiper les menaces)
         const n = this.size;
         const directions = [
             [0, 1], [1, 0], [1, 1], [1, -1],
         ];
-        let score = 0;
+        let count = 0;
         for (const [dx, dy] of directions) {
-            let count = 1;
-            let x = row + dx, y = col + dy;
-            while (x >= 0 && x < n && y >= 0 && y < n && this.grid[x][y] === player) {
-                count++;
-                x += dx;
-                y += dy;
+            let c = 1;
+            let x1 = row + dx, y1 = col + dy;
+            let x2 = row - dx, y2 = col - dy;
+            if (
+                x1 >= 0 && x1 < n && y1 >= 0 && y1 < n && this.grid[x1][y1] === player &&
+                x2 >= 0 && x2 < n && y2 >= 0 && y2 < n && this.grid[x2][y2] === player
+            ) {
+                c += 2;
+            } else {
+                if (x1 >= 0 && x1 < n && y1 >= 0 && y1 < n && this.grid[x1][y1] === player) c++;
+                if (x2 >= 0 && x2 < n && y2 >= 0 && y2 < n && this.grid[x2][y2] === player) c++;
             }
-            x = row - dx;
-            y = col - dy;
-            while (x >= 0 && x < n && y >= 0 && y < n && this.grid[x][y] === player) {
-                count++;
-                x -= dx;
-                y -= dy;
-            }
-            score = Math.max(score, count);
+            if (c === 2) count++;
         }
-        return score;
+        return count;
     }
 
     private findWinningMove(player: Player): [number, number] | null {

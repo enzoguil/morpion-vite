@@ -14,11 +14,26 @@ const App = () => {
   const [message, setMessage] = useState('');
   const [vsAI, setVsAI] = useState(true);
   const [aiVsAi, setAiVsAi] = useState(false);
+  const [firstPlayer, setFirstPlayer] = useState<'X' | 'O'>('X');
+
+  // Fonction utilitaire pour choisir aléatoirement le premier joueur
+  const getRandomFirstPlayer = () => (Math.random() < 0.5 ? 'X' : 'O');
+
+  const createGame = (size: number, align: number, profondeur: number, first: 'X' | 'O') => {
+    const game = new Morpion(size, align, profondeur);
+    game.currentPlayer = first;
+    return game;
+  };
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSize = Math.max(3, Number(e.target.value));
     setSize(newSize);
-    const newGame = new Morpion(newSize, align, profondeur);
+    let first: 'X' | 'O' = vsAI ? getRandomFirstPlayer() : 'X';
+    setFirstPlayer(first);
+    if(first === 'O' && vsAI) {
+      game.playAI();
+    }
+    const newGame = createGame(newSize, align, profondeur, first);
     setGame(newGame);
     setGrid(createEmptyGrid(newSize));
     setMessage('');
@@ -27,7 +42,12 @@ const App = () => {
   const handleAlignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newAlign = Math.max(3, Number(e.target.value));
     setAlign(newAlign);
-    const newGame = new Morpion(size, newAlign, profondeur);
+    let first: 'X' | 'O' = vsAI ? getRandomFirstPlayer() : 'X';
+    setFirstPlayer(first);
+    if(first === 'O' && vsAI) {
+      game.playAI();
+    }
+    const newGame = createGame(size, newAlign, profondeur, first);
     setGame(newGame);
     setGrid(createEmptyGrid(size));
     setMessage('');
@@ -36,7 +56,12 @@ const App = () => {
   const handleProfondeurChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newProf = Math.min(10, Math.max(1, Number(e.target.value)));
     setProfondeur(newProf);
-    const newGame = new Morpion(size, align, newProf);
+    let first: 'X' | 'O' = vsAI ? getRandomFirstPlayer() : 'X';
+    setFirstPlayer(first);
+    if(first === 'O' && vsAI) {
+      game.playAI();
+    }
+    const newGame = createGame(size, align, newProf, first);
     setGame(newGame);
     setGrid(createEmptyGrid(size));
     setMessage('');
@@ -45,7 +70,9 @@ const App = () => {
   const handleVsAICheck = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVsAI(e.target.checked);
     if (e.target.checked) setAiVsAi(false);
-    const newGame = new Morpion(size, align, profondeur);
+    let first: 'X' | 'O' = e.target.checked ? getRandomFirstPlayer() : 'X';
+    setFirstPlayer(first);
+    const newGame = createGame(size, align, profondeur, first);
     setGame(newGame);
     setGrid(createEmptyGrid(size));
     setMessage('');
@@ -54,7 +81,8 @@ const App = () => {
   const handleAiVsAiCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAiVsAi(e.target.checked);
     if (e.target.checked) setVsAI(false);
-    const newGame = new Morpion(size, align, profondeur);
+    setFirstPlayer('X');
+    const newGame = createGame(size, align, profondeur, 'X');
     setGame(newGame);
     setGrid(createEmptyGrid(size));
     setMessage('');
@@ -98,7 +126,9 @@ const App = () => {
   };
 
   const handleReset = () => {
-    const newGame = new Morpion(size, align);
+    let first: 'X' | 'O' = vsAI ? getRandomFirstPlayer() : 'X';
+    setFirstPlayer(first);
+    const newGame = createGame(size, align, profondeur, first);
     setGame(newGame);
     setGrid(createEmptyGrid(size));
     setMessage('');
